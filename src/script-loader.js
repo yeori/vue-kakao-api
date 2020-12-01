@@ -1,8 +1,11 @@
+import eventer from './service/event'
+
 const scriptId = `kakaomap-sdk-${Math.random()
   .toString(16)
   .substring(2)}`
 const queue = []
 let loaded = false
+
 const loadScript = key => {
   const el = document.querySelector('#' + scriptId)
   if (el) {
@@ -17,6 +20,7 @@ const loadScript = key => {
   script.onload = () => {
     window.kakao.maps.load(() => {
       loaded = true
+      eventer.installMarkerHelper()
       queue.forEach(callback => {
         callback()
       })

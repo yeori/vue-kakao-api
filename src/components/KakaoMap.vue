@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 <script>
 import loader from '../script-loader'
+import eventer from '../service/event'
 
 const ref = vue => {
   const { ref } = vue.$vnode.data
@@ -70,6 +71,8 @@ export default {
     loader(() => {
       this.initApi()
       this.watches()
+      this.listen()
+      this.ready(this)
     }, this.apiKey)
   },
   methods: {
@@ -78,7 +81,6 @@ export default {
         center: new window.kakao.maps.LatLng(this.lat, this.lng),
         level: 3
       })
-      this.ready(this)
     },
     watches() {
       const { watch } = this.$props
@@ -108,6 +110,9 @@ export default {
           service.default.watch(this, elem)
         })
       })
+    },
+    listen() {
+      eventer.install(this)
     },
     getApi() {
       return this.api
