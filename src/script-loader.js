@@ -17,6 +17,8 @@ const loadScript = key => {
   const script = document.createElement('script')
   script.type = 'text/javascript'
   script.setAttribute('id', scriptId)
+  const head = document.querySelector('head')
+  head.appendChild(script)
   script.onload = () => {
     window.kakao.maps.load(() => {
       loaded = true
@@ -26,8 +28,6 @@ const loadScript = key => {
       })
     })
   }
-  const head = document.querySelector('head')
-  head.appendChild(script)
   script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${key}&libraries=services&autoload=false`
 }
 
