@@ -80,31 +80,8 @@ const findMarkerListener = vue => {
   return listeners
 }
 
-const installMarkerHelper = () => {
-  const { prototype } = window.kakao.maps.Marker
-  prototype.hide = function() {
-    this.setMap(null)
-  }
-  prototype.remove = function() {
-    this.setMap(null)
-    if (this.$onRemoved) {
-      this.$onRemoved.forEach($l => {
-        $l(this)
-      })
-    }
-  }
-  const l = prototype.addListener
-  prototype.addListener = function(type, callback) {
-    if (type === 'remove') {
-      this.$onRemoved.push(callback)
-    } else {
-      l.call(this, type, callback)
-    }
-  }
-}
 export default {
   install,
   findMarkerListener,
-  installMarkerListener,
-  installMarkerHelper
+  installMarkerListener
 }

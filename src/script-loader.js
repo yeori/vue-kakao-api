@@ -1,9 +1,9 @@
-import eventer from './service/event'
+import marker from './service/marker'
 
 const scriptId = `kakaomap-sdk-${Math.random()
   .toString(16)
   .substring(2)}`
-const queue = []
+let queue = []
 let loaded = false
 
 const loadScript = key => {
@@ -22,10 +22,11 @@ const loadScript = key => {
   script.onload = () => {
     window.kakao.maps.load(() => {
       loaded = true
-      eventer.installMarkerHelper()
+      marker.installHelperMethods()
       queue.forEach(callback => {
         callback()
       })
+      queue = null
     })
   }
   script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${key}&libraries=services&autoload=false`
