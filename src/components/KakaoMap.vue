@@ -1,7 +1,9 @@
 // eslint-disable-next-line no-unused-vars
 <script>
+import Vue from 'vue'
 import loader from '../script-loader'
 import eventer from '../service/event'
+import markerService from '../service/marker'
 
 const ref = vue => {
   const { ref } = vue.$vnode.data
@@ -9,6 +11,55 @@ const ref = vue => {
     throw new Error('ref should be specified like <vue-kakao-map ref=".." />')
   }
   return ref
+}
+const initApi = vue => {
+  vue.api = new window.kakao.maps.Map(vue.$refs.el, {
+    center: new window.kakao.maps.LatLng(vue.lat, vue.lng),
+    level: 3
+  })
+}
+
+const meta = vue => {
+  vue.$$store = Vue.observable({
+    markers: []
+  })
+  vue.$$store.addMarker = option => {
+    markerService.addMarker(vue, option)
+  }
+  vue.$$store.removeMarker = markerService.removeMarker
+}
+const listen = vue => {
+  eventer.install(vue)
+}
+
+const watches = vue => {
+  const { watch } = vue.$props
+  if (!watch) {
+    return
+  }
+  const type = typeof watch
+  let watchSet
+  if (type === 'string') {
+    const refName = ref(vue)
+    watchSet = watch
+      .split(',')
+      .map(w => w.trim())
+      .filter(w => w.length > 0)
+      .map(wname => ({
+        name: wname,
+        value: refName
+      }))
+  } else if (type === 'object') {
+    watchSet = Object.keys(watch).map(wname => ({
+      name: wname,
+      value: watch[wname]
+    }))
+  }
+  import('../service').then(service => {
+    watchSet.forEach(elem => {
+      service.default.watch(vue, elem)
+    })
+  })
 }
 export default {
   name: 'VueKakaoMap',
@@ -69,53 +120,19 @@ export default {
   },
   mounted() {
     loader(() => {
-      this.initApi()
-      this.watches()
-      this.listen()
+      initApi(this)
+      watches(this)
+      listen(this)
+      meta(this)
       this.ready(this)
     }, this.apiKey)
   },
   methods: {
-    initApi() {
-      this.api = new window.kakao.maps.Map(this.$refs.el, {
-        center: new window.kakao.maps.LatLng(this.lat, this.lng),
-        level: 3
-      })
-    },
-    watches() {
-      const { watch } = this.$props
-      if (!watch) {
-        return
-      }
-      const type = typeof watch
-      let watchSet
-      if (type === 'string') {
-        const refName = ref(this)
-        watchSet = watch
-          .split(',')
-          .map(w => w.trim())
-          .filter(w => w.length > 0)
-          .map(wname => ({
-            name: wname,
-            value: refName
-          }))
-      } else if (type === 'object') {
-        watchSet = Object.keys(watch).map(wname => ({
-          name: wname,
-          value: watch[wname]
-        }))
-      }
-      import('../service').then(service => {
-        watchSet.forEach(elem => {
-          service.default.watch(this, elem)
-        })
-      })
-    },
-    listen() {
-      eventer.install(this)
-    },
     getApi() {
       return this.api
+    },
+    getStore() {
+      return this.$$store
     },
     asHeight(v) {
       return typeof v === 'number' ? `${v}px` : v
